@@ -1,0 +1,103 @@
+import { StyleSheet } from 'react-native';
+
+export const colors = {
+  primary: '#007AFF',
+  secondary: '#5856D6',
+  success: '#34C759',
+  warning: '#FF9500',
+  danger: '#FF3B30',
+  light: '#F2F2F7',
+  dark: '#1C1C1E',
+  gray: '#8E8E93',
+  white: '#FFFFFF',
+  black: '#000000',
+  background: '#F5F5F5',
+  cardBackground: '#FFFFFF',
+  border: '#E1E1E1',
+  placeholder: '#999999',
+};
+
+export const globalStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.dark,
+    flex: 1,
+    textAlign: 'center',
+  },
+  backButton: {
+    fontSize: 16,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+    color: colors.dark,
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 40,
+    color: colors.gray,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: colors.dark,
+  },
+  card: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  errorText: {
+    fontSize: 18,
+    color: colors.danger,
+    textAlign: 'center',
+    margin: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: colors.gray,
+  },
+});
