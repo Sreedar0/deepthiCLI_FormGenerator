@@ -1,81 +1,69 @@
+// common/Dropdown.js (updated)
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../styles/globalStyles';
 
-const Dropdown = ({ 
-  label, 
-  options, 
-  value, 
-  onSelect, 
-  searchable = false, 
-  placeholder = 'Select...',
-  required = false 
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchText, setSearchText] = useState('');
+const Dropdown = ({ label, options, value, onSelect, required = false, style }) => {
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const filteredOptions = searchable 
-    ? options.filter(option => 
-        option.name.toLowerCase().includes(searchText.toLowerCase())
-      )
-    : options;
-
-  const selectedOption = options.find(option => option.value === value);
+  const selectedOption = options.find(opt => opt.value === value);
 
   return (
-    <View style={styles.dropdownContainer}>
-      <Text style={styles.inputLabel}>
-        {label}{required && ' *'}
-      </Text>
-      <TouchableOpacity
+    <View style={[styles.container, style]}>
+      <View style={styles.labelContainer}>
+        <Text style={styles.label}>
+          {label}
+          {required && <Text style={styles.required}> *</Text>}
+        </Text>
+      </View>
+      
+      <TouchableOpacity 
         style={styles.dropdownButton}
-        onPress={() => setIsOpen(true)}
+        onPress={() => setModalVisible(true)}
       >
         <Text style={[
-          styles.dropdownButtonText, 
-          !selectedOption && styles.placeholderText
+          styles.dropdownText,
+          !value && styles.placeholderText
         ]}>
-          {selectedOption ? selectedOption.name : placeholder}
+          {selectedOption ? selectedOption.name : 'Select an option'}
         </Text>
-        <Text style={styles.dropdownArrow}>▼</Text>
+        <Icon name="arrow-drop-down" size={24} color={colors.dark} />
       </TouchableOpacity>
 
-      <Modal visible={isOpen} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{label}</Text>
-              <TouchableOpacity onPress={() => setIsOpen(false)}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {searchable && (
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search..."
-                placeholderTextColor={colors.placeholder}
-                value={searchText}
-                onChangeText={setSearchText}
-              />
-            )}
-
+            <Text style={styles.modalTitle}>Select {label}</Text>
             <FlatList
-              data={filteredOptions}
-              keyExtractor={item => item.id.toString()}
+              data={options}
+              keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={styles.dropdownItem}
+                  style={styles.optionItem}
                   onPress={() => {
                     onSelect(item.value);
-                    setIsOpen(false);
-                    setSearchText('');
+                    setModalVisible(false);
                   }}
                 >
-                  <Text style={styles.dropdownItemText}>{item.name}</Text>
+                  <Text style={styles.optionText}>{item.name}</Text>
+                  {value === item.value && (
+                    <Icon name="check" size={20} color={colors.primary} />
+                  )}
                 </TouchableOpacity>
               )}
             />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -84,96 +72,86 @@ const Dropdown = ({
 };
 
 const styles = StyleSheet.create({
-  dropdownContainer: {
-    marginBottom: 20,
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 8,
   },
-  inputLabel: {
-    fontSize: 16,
+  labelContainer: {
+    width: '35%',
+    paddingRight: 12,
+  },
+  label: {
+    fontSize: 14,
     fontWeight: '600',
-    marginBottom: 8,
     color: colors.dark,
+    textAlign: 'right',
+  },
+  required: {
+    color: colors.danger,
   },
   dropdownButton: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
-    padding: 15,
-    backgroundColor: colors.white,
-    elevation: 1,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    minHeight: 44,
   },
-  dropdownButtonText: {
-    fontSize: 16,
+  dropdownText: {
+    fontSize: 14,
     color: colors.dark,
   },
   placeholderText: {
-    color: colors.placeholder,
+    color: '#999',
   },
-  dropdownArrow: {
-    fontSize: 12,
-    color: colors.gray,
-  },
-  modalOverlay: {
+  modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
+    backgroundColor: 'white',
+    borderRadius: 8,
     padding: 20,
-    width: '90%',
+    width: '80%',
     maxHeight: '80%',
-    elevation: 5,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.dark,
-  },
-  modalClose: {
-    fontSize: 20,
-    color: colors.gray,
-    fontWeight: 'bold',
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 12,
     marginBottom: 15,
-    fontSize: 16,
-    backgroundColor: colors.white,
+    textAlign: 'center',
   },
-  dropdownItem: {
-    paddingVertical: 15,
-    paddingHorizontal: 10,
+  optionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.light,
+    borderBottomColor: '#f0f0f0',
   },
-  dropdownItemText: {
+  optionText: {
     fontSize: 16,
     color: colors.dark,
+  },
+  closeButton: {
+    marginTop: 15,
+    padding: 12,
+    backgroundColor: colors.primary,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
 

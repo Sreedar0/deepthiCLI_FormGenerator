@@ -63,76 +63,72 @@ const HomeScreen = () => {
 
     return (
         <View style={globalStyles.container}>
-            <ScrollView contentContainerStyle={styles.content}>
-                <View style={styles.formSelection}>
+            {/* Form Selection Section - Fixed height */}
+            <View style={styles.formSelection}>
+                <Dropdown
+                    label="Inspection Category"
+                    options={INSPECTION_CATEGORIES}
+                    value={selectedCategory?.value}
+                    onSelect={(value) => setSelectedCategory(
+                        INSPECTION_CATEGORIES.find(cat => cat.value === value)
+                    )}
+                    placeholder="Select a category"
+                />
+
+                {availableTypes.length > 0 && (
                     <Dropdown
-                        label="Inspection Category"
-                        options={INSPECTION_CATEGORIES}
-                        value={selectedCategory?.value}
-                        onSelect={(value) => setSelectedCategory(
-                            INSPECTION_CATEGORIES.find(cat => cat.value === value)
+                        label="Inspection Type"
+                        options={availableTypes}
+                        value={selectedType?.value}
+                        onSelect={(value) => setSelectedType(
+                            availableTypes.find(type => type.value === value)
                         )}
-                        placeholder="Select a category"
+                        placeholder="Select a type"
+                        searchable
                     />
+                )}
 
-                    {availableTypes.length > 0 && (
+                {availableForms.length > 0 && (
+                    <>
                         <Dropdown
-                            label="Inspection Type"
-                            options={availableTypes}
-                            value={selectedType?.value}
-                            onSelect={(value) => setSelectedType(
-                                availableTypes.find(type => type.value === value)
-                            )}
-                            placeholder="Select a type"
-                            searchable
+                            label="Available Forms"
+                            options={availableForms.map(form => ({
+                                id: form.formId,
+                                name: form.name,
+                                value: form.formId
+                            }))}
+                            value={selectedForm?.formId}
+                            onSelect={handleFormSelect}
+                            placeholder="Select a form"
                         />
-                    )}
 
-                    {availableForms.length > 0 && (
-                        <>
-                            <Dropdown
-                                label="Available Forms"
-                                options={availableForms.map(form => ({
-                                    id: form.formId,
-                                    name: form.name,
-                                    value: form.formId
-                                }))}
-                                value={selectedForm?.formId}
-                                onSelect={handleFormSelect}
-                                placeholder="Select a form"
-                            />
+                        <CustomButton
+                            title="Get Form"
+                            onPress={handleGetForm}
+                            style={styles.getFormButton}
+                            disabled={!selectedForm}
+                        />
+                    </>
+                )}
+            </View>
 
-                            <CustomButton
-                                title="Get Form"
-                                onPress={handleGetForm}
-                                style={styles.getFormButton}
-                                disabled={!selectedForm}
-                            />
-                        </>
-                    )}
-                </View>
-
-                <View style={styles.submittedForms}>
-                    <SubmittedFormsTable refresh={refreshTable} />
-                </View>
-            </ScrollView>
+            {/* Forms Table Section - Takes remaining space */}
+            <View style={styles.submittedForms}>
+                <SubmittedFormsTable />
+            </View>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    content: {
-        paddingBottom: 20,
-    },
     formSelection: {
         padding: 20,
         backgroundColor: '#fff',
-        marginBottom: 20,
-        borderRadius: 10,
-        elevation: 2,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.light,
     },
     submittedForms: {
-        paddingHorizontal: 10,
+        flex: 1,
     },
     getFormButton: {
         marginTop: 20,

@@ -21,23 +21,22 @@ const SubmittedFormsTable = () => {
   const navigation = useNavigation();
 
   const loadForms = async () => {
-  try {
-    const submittedForms = await getSubmittedForms();
-    // Parse the 'data' field of each form from JSON string to object
-    const parsedForms = submittedForms.map(form => ({
-      ...form,
-      data: typeof form.data === 'string' ? JSON.parse(form.data) : form.data
-    }));
-    setForms(parsedForms);
-  } catch (error) {
-    console.error('Error loading forms:', error);
-    Alert.alert('Error', 'Failed to load forms');
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
-
+    try {
+      const submittedForms = await getSubmittedForms();
+      // Parse the 'data' field of each form from JSON string to object
+      const parsedForms = submittedForms.map(form => ({
+        ...form,
+        data: typeof form.data === 'string' ? JSON.parse(form.data) : form.data
+      }));
+      setForms(parsedForms);
+    } catch (error) {
+      console.error('Error loading forms:', error);
+      Alert.alert('Error', 'Failed to load forms');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     loadForms();
@@ -95,46 +94,53 @@ const SubmittedFormsTable = () => {
     );
   }
 
-  return (
-    <View style={globalStyles.container}>
-      <FlatList
-        data={forms}
-        keyExtractor={(item) => item.id}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
-        contentContainerStyle={styles.listContent}
-        nestedScrollEnabled={true}
-        ListHeaderComponent={() => (
-          <View style={styles.tableHeader}>
-            <Text style={styles.headerText}>Form Name</Text>
-            <Text style={styles.headerText}>Date</Text>
-            <Text style={styles.headerText}>Actions</Text>
-          </View>
-        )}
-        renderItem={({ item }) => (
-          <View style={styles.tableRow}>
-            <Text style={styles.cellText} numberOfLines={1}>
-              {item.formId}
-            </Text>
-            <Text style={styles.cellText}>{new Date(item.date).toLocaleDateString()}</Text>
-            <View style={styles.actionsCell}>
-              <TouchableOpacity onPress={() => handleView(item)}>
-                <Text style={styles.viewButton}>View</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDelete(item.id)}>
-                <Text style={styles.deleteButton}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-      />
+  // Render header component
+  const renderHeader = () => (
+    <View style={styles.tableHeader}>
+      <Text style={styles.headerText}>Form Name</Text>
+      <Text style={styles.headerText}>Date</Text>
+      <Text style={styles.headerText}>Actions</Text>
     </View>
+  );
+
+  // Render each row
+  const renderItem = ({ item }) => (
+    <View style={styles.tableRow}>
+      <Text style={styles.cellText} numberOfLines={1}>
+        {item.formId}
+      </Text>
+      <Text style={styles.cellText}>{new Date(item.date).toLocaleDateString()}</Text>
+      <View style={styles.actionsCell}>
+        <TouchableOpacity onPress={() => handleView(item)}>
+          <Text style={styles.viewButton}>View</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleDelete(item.id)}>
+          <Text style={styles.deleteButton}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <FlatList
+      data={forms}
+      keyExtractor={(item) => item.id}
+      refreshing={refreshing}
+      onRefresh={handleRefresh}
+      contentContainerStyle={styles.listContent}
+      ListHeaderComponent={renderHeader}
+      renderItem={renderItem}
+      style={styles.flatList}
+    />
   );
 };
 
 const styles = StyleSheet.create({
+  flatList: {
+    flex: 1,
+  },
   listContent: {
-    padding: 10,
+    flexGrow: 1,
   },
   tableHeader: {
     flexDirection: 'row',

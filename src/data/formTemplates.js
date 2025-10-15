@@ -21,6 +21,33 @@ export const FORM_TEMPLATES = {
       { id: 'water_damage', sno: 6, label: 'Water Damage', type: 'checkbox', required: false },
       { id: 'settlement_issues', sno: 7, label: 'Settlement Issues', type: 'checkbox', required: false },
       {
+        id: 'safety_equipment_section',
+        sno: 20,
+        label: 'Safety Equipment Details',
+        type: 'accordion',
+        fields: [
+          { id: 'helmet_available', label: 'Helmet Available', type: 'checkbox' },
+          { id: 'safety_gloves', label: 'Safety Gloves', type: 'checkbox' },
+          { id: 'safety_goggles', label: 'Safety Goggles', type: 'checkbox' },
+          { id: 'safety_notes', label: 'Safety Notes', type: 'textarea' },
+        ]
+      },
+
+      {
+        id: 'defects_found',
+        sno: 8,
+        label: 'Defects Found (Select all that apply)',
+        type: 'checkbox',
+        options: [
+          { label: 'Hairline Cracks', value: 'hairline_cracks' },
+          { label: 'Structural Cracks', value: 'structural_cracks' },
+          { label: 'Water Seepage', value: 'water_seepage' },
+          { label: 'Mold Growth', value: 'mold_growth' },
+          { label: 'Foundation Settlement', value: 'foundation_settlement' }
+        ],
+        required: false
+      },
+      {
         id: 'ladder_inspection_groups',
         sno: 100,
         label: 'Answer Yes or No to all - Ladder Inspection',
@@ -44,6 +71,13 @@ export const FORM_TEMPLATES = {
       { id: 'inspectorName', label: 'Inspector Name', type: 'text', required: true },
       { id: 'inspectionDate', label: 'Inspection Date', type: 'date', required: true },
       { id: 'sitePhoto', label: 'Site Photo', type: 'image', required: true },
+      {
+        id: 'sitePhotos',
+        sno: 9,
+        label: 'Site Photos',
+        type: 'image_group',
+        required: true
+      },
       { id: 'signOff', label: 'Supervisor Signature', type: 'signature', required: true },
     ]
   },
@@ -66,6 +100,32 @@ export const FORM_TEMPLATES = {
       },
       { id: 'gfci_outlets', sno: 5, label: 'GFCI Outlets Present', type: 'checkbox', required: false },
       { id: 'code_violations', sno: 6, label: 'Code Violations Found', type: 'checkbox', required: false },
+      {
+        id: 'safety_equipment_section',
+        sno: 20,
+        label: 'Safety Equipment Details',
+        type: 'accordion',
+        fields: [
+          { id: 'helmet_available', label: 'Helmet Available', type: 'checkbox' },
+          { id: 'safety_gloves', label: 'Safety Gloves', type: 'checkbox' },
+          { id: 'safety_goggles', label: 'Safety Goggles', type: 'checkbox' },
+          { id: 'safety_notes', label: 'Safety Notes', type: 'textarea' },
+        ]
+      },
+      {
+        id: 'defects_found',
+        sno: 8,
+        label: 'Defects Found (Select all that apply)',
+        type: 'checkbox',
+        options: [
+          { label: 'Hairline Cracks', value: 'hairline_cracks' },
+          { label: 'Structural Cracks', value: 'structural_cracks' },
+          { label: 'Water Seepage', value: 'water_seepage' },
+          { label: 'Mold Growth', value: 'mold_growth' },
+          { label: 'Foundation Settlement', value: 'foundation_settlement' }
+        ],
+        required: false
+      },
       { id: 'voltage_reading', sno: 7, label: 'Voltage Reading (V)', type: 'number', required: false },
       { id: 'recommendations', sno: 8, label: 'Recommendations', type: 'textarea', required: false },
       {
@@ -90,6 +150,13 @@ export const FORM_TEMPLATES = {
       { id: 'inspectorName', label: 'Inspector Name', type: 'text', required: true },
       { id: 'inspectionDate', label: 'Inspection Date', type: 'date', required: true },
       { id: 'sitePhoto', label: 'Site Photo', type: 'image', required: true },
+      {
+        id: 'sitePhotos',
+        sno: 9,
+        label: 'Site Photos',
+        type: 'image_group',
+        required: true
+      },
       { id: 'signOff', label: 'Supervisor Signature', type: 'signature', required: true },
     ]
   },
@@ -117,6 +184,32 @@ export const FORM_TEMPLATES = {
       },
       { id: 'lights_working', sno: 9, label: 'All Lights Working', type: 'checkbox', required: false },
       { id: 'emissions_pass', sno: 10, label: 'Emissions Test Pass', type: 'checkbox', required: false },
+      {
+        id: 'safety_equipment_section',
+        sno: 20,
+        label: 'Safety Equipment Details',
+        type: 'accordion',
+        fields: [
+          { id: 'helmet_available', label: 'Helmet Available', type: 'checkbox' },
+          { id: 'safety_gloves', label: 'Safety Gloves', type: 'checkbox' },
+          { id: 'safety_goggles', label: 'Safety Goggles', type: 'checkbox' },
+          { id: 'safety_notes', label: 'Safety Notes', type: 'textarea' },
+        ]
+      },
+      {
+        id: 'defects_found',
+        sno: 8,
+        label: 'Defects Found (Select all that apply)',
+        type: 'checkbox',
+        options: [
+          { label: 'Hairline Cracks', value: 'hairline_cracks' },
+          { label: 'Structural Cracks', value: 'structural_cracks' },
+          { label: 'Water Seepage', value: 'water_seepage' },
+          { label: 'Mold Growth', value: 'mold_growth' },
+          { label: 'Foundation Settlement', value: 'foundation_settlement' }
+        ],
+        required: false
+      },
       { id: 'safety_issues', sno: 11, label: 'Safety Issues Found', type: 'textarea', required: false },
       {
         id: 'ladder_inspection_groups',
@@ -140,6 +233,13 @@ export const FORM_TEMPLATES = {
       { id: 'inspectorName', label: 'Inspector Name', type: 'text', required: true },
       { id: 'inspectionDate', label: 'Inspection Date', type: 'date', required: true },
       { id: 'sitePhoto', label: 'Site Photo', type: 'image', required: true },
+      {
+        id: 'sitePhotos',
+        sno: 9,
+        label: 'Site Photos',
+        type: 'image_group',
+        required: true
+      },
       { id: 'signOff', label: 'Supervisor Signature', type: 'signature', required: true },
     ]
   },
@@ -161,6 +261,32 @@ export const FORM_TEMPLATES = {
       { id: 'evacuation_plan', sno: 10, label: 'Evacuation Plan Posted', type: 'checkbox', required: false },
       { id: 'hazards_identified', sno: 11, label: 'Fire Hazards Identified', type: 'textarea', required: false },
       {
+        id: 'safety_equipment_section',
+        sno: 20,
+        label: 'Safety Equipment Details',
+        type: 'accordion',
+        fields: [
+          { id: 'helmet_available', label: 'Helmet Available', type: 'checkbox' },
+          { id: 'safety_gloves', label: 'Safety Gloves', type: 'checkbox' },
+          { id: 'safety_goggles', label: 'Safety Goggles', type: 'checkbox' },
+          { id: 'safety_notes', label: 'Safety Notes', type: 'textarea' },
+        ]
+      },
+      {
+        id: 'defects_found',
+        sno: 8,
+        label: 'Defects Found (Select all that apply)',
+        type: 'checkbox',
+        options: [
+          { label: 'Hairline Cracks', value: 'hairline_cracks' },
+          { label: 'Structural Cracks', value: 'structural_cracks' },
+          { label: 'Water Seepage', value: 'water_seepage' },
+          { label: 'Mold Growth', value: 'mold_growth' },
+          { label: 'Foundation Settlement', value: 'foundation_settlement' }
+        ],
+        required: false
+      },
+      {
         id: 'ladder_inspection_groups',
         sno: 100,
         label: 'Answer Yes or No to all - Ladder Inspection',
@@ -182,6 +308,13 @@ export const FORM_TEMPLATES = {
       { id: 'inspectorName', label: 'Inspector Name', type: 'text', required: true },
       { id: 'inspectionDate', label: 'Inspection Date', type: 'date', required: true },
       { id: 'sitePhoto', label: 'Site Photo', type: 'image', required: true },
+      {
+        id: 'sitePhotos',
+        sno: 9,
+        label: 'Site Photos',
+        type: 'image_group',
+        required: true
+      },
       { id: 'signOff', label: 'Supervisor Signature', type: 'signature', required: true },
     ]
   },
@@ -199,6 +332,18 @@ export const FORM_TEMPLATES = {
       { id: 'hot_water_working', sno: 6, label: 'Hot Water System Working', type: 'checkbox', required: false },
       { id: 'drainage_issues', sno: 7, label: 'Drainage Issues', type: 'textarea', required: false },
       {
+        id: 'safety_equipment_section',
+        sno: 20,
+        label: 'Safety Equipment Details',
+        type: 'accordion',
+        fields: [
+          { id: 'helmet_available', label: 'Helmet Available', type: 'checkbox' },
+          { id: 'safety_gloves', label: 'Safety Gloves', type: 'checkbox' },
+          { id: 'safety_goggles', label: 'Safety Goggles', type: 'checkbox' },
+          { id: 'safety_notes', label: 'Safety Notes', type: 'textarea' },
+        ]
+      },
+      {
         id: 'ladder_inspection_groups',
         sno: 100,
         label: 'Answer Yes or No to all - Ladder Inspection',
@@ -220,6 +365,13 @@ export const FORM_TEMPLATES = {
       { id: 'inspectorName', label: 'Inspector Name', type: 'text', required: true },
       { id: 'inspectionDate', label: 'Inspection Date', type: 'date', required: true },
       { id: 'sitePhoto', label: 'Site Photo', type: 'image', required: true },
+      {
+        id: 'sitePhotos',
+        sno: 9,
+        label: 'Site Photos',
+        type: 'image_group',
+        required: true
+      },
       { id: 'signOff', label: 'Supervisor Signature', type: 'signature', required: true },
     ]
   },
@@ -232,6 +384,18 @@ export const FORM_TEMPLATES = {
       { id: 'safety_equipment', sno: 4, label: 'Safety Equipment Available', type: 'checkbox', required: false },
       { id: 'emergency_exits', sno: 5, label: 'Emergency Exits Clear', type: 'checkbox', required: false },
       { id: 'first_aid_kit', sno: 6, label: 'First Aid Kit Available', type: 'checkbox', required: false },
+      {
+        id: 'safety_equipment_section',
+        sno: 20,
+        label: 'Safety Equipment Details',
+        type: 'accordion',
+        fields: [
+          { id: 'helmet_available', label: 'Helmet Available', type: 'checkbox' },
+          { id: 'safety_gloves', label: 'Safety Gloves', type: 'checkbox' },
+          { id: 'safety_goggles', label: 'Safety Goggles', type: 'checkbox' },
+          { id: 'safety_notes', label: 'Safety Notes', type: 'textarea' },
+        ]
+      },
       {
         id: 'safety_rating', sno: 7, label: 'Overall Safety Rating', type: 'radio',
         options: [
@@ -264,6 +428,13 @@ export const FORM_TEMPLATES = {
       { id: 'inspectorName', label: 'Inspector Name', type: 'text', required: true },
       { id: 'inspectionDate', label: 'Inspection Date', type: 'date', required: true },
       { id: 'sitePhoto', label: 'Site Photo', type: 'image', required: true },
+      {
+        id: 'sitePhotos',
+        sno: 9,
+        label: 'Site Photos',
+        type: 'image_group',
+        required: true
+      },
       { id: 'signOff', label: 'Supervisor Signature', type: 'signature', required: true },
     ]
   },

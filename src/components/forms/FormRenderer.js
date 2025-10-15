@@ -6,7 +6,6 @@ import {
   Text,
   ActivityIndicator,
   Alert,
-  Button,
   TouchableOpacity,
 } from 'react-native';
 import CustomInput from '../common/CustomInput';
@@ -18,12 +17,13 @@ import { globalStyles, colors } from '../../styles/globalStyles';
 import { useNavigation } from '@react-navigation/native';
 import SignaturePad from '../common/SignaturePad';
 import ImageCapture from '../common/ImageCapture';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateField from '../common/DateField';
 import { saveForm } from '../../Services/storageService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import ImageCaptureGroup from '../common/ImageCaptureGroup';
+import Accordion from '../common/Accordion';
 
-// Dynamic Group Component
-// Updated Dynamic Group Component - Simplified for text-only fields
+// Updated Dynamic Group Component with new layout
 const DynamicGroup = ({ group, groupIndex, groupData, onGroupChange, onRemoveGroup, isLastGroup }) => {
   const handleFieldChange = (fieldId, value) => {
     const updatedGroup = {
@@ -54,12 +54,11 @@ const DynamicGroup = ({ group, groupIndex, groupData, onGroupChange, onRemoveGro
         <Text style={styles.groupTitle}>Group {groupIndex + 1}</Text>
         {!isLastGroup && (
           <TouchableOpacity onPress={() => onRemoveGroup(groupIndex)} style={styles.removeButton}>
-            {/* <Icon name="delete" size={20} color={colors.danger} /> */}
-            <Text style={{color:'red', backgroundColor:'black',padding:7,fontWeight:'bold',borderRadius:8}}>X</Text>
+            <Text style={styles.removeButtonText}>X</Text>
           </TouchableOpacity>
         )}
       </View>
-      
+
       <View style={styles.groupFields}>
         {group.groupFields.map((field, fieldIndex) => (
           <View key={`${field.id}-${fieldIndex}`} style={styles.groupField}>
@@ -70,24 +69,30 @@ const DynamicGroup = ({ group, groupIndex, groupData, onGroupChange, onRemoveGro
     </View>
   );
 };
+
 const FormRenderer = ({ formTemplate }) => {
   const navigation = useNavigation();
 
-  // Initialize form data - simpler structure
+  // Initialize form data
   const initialData = {};
   formTemplate.fields.forEach((field) => {
     if (field.type === 'dynamic_group') {
-      // Initialize with one empty group
       initialData[field.id] = [{}];
+    } else if (field.type === 'image_group') {
+      initialData[field.id] = [];
+    } else if (field.type === 'checkbox' && field.options) {
+      initialData[field.id] = [];
+    } else if (field.type === 'checkbox') {
+      initialData[field.id] = false;
     } else {
-      initialData[field.id] = field.type === 'checkbox' ? false : '';
+      initialData[field.id] = '';
     }
   });
 
   const [formData, setFormData] = useState(initialData);
-  const [showDatePicker, setShowDatePicker] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [accordionStates, setAccordionStates] = useState({});
 
   const handleInputChange = (fieldId, value) => {
     setFormData((prev) => ({
@@ -114,7 +119,7 @@ const FormRenderer = ({ formTemplate }) => {
   const handleGroupChange = (fieldId, groupIndex, updatedGroup) => {
     setFormData((prev) => ({
       ...prev,
-      [fieldId]: prev[fieldId].map((group, index) => 
+      [fieldId]: prev[fieldId].map((group, index) =>
         index === groupIndex ? updatedGroup : group
       )
     }));
@@ -125,6 +130,13 @@ const FormRenderer = ({ formTemplate }) => {
     setFormData((prev) => ({
       ...prev,
       [fieldId]: signature,
+    }));
+  };
+
+  const handleAccordionToggle = (fieldId, isOpen) => {
+    setAccordionStates(prev => ({
+      ...prev,
+      [fieldId]: isOpen
     }));
   };
 
@@ -215,15 +227,27 @@ const FormRenderer = ({ formTemplate }) => {
         );
 
       case 'checkbox':
-        return (
-          <CheckboxField
-            label={field.label}
-            value={!!value}
-            onValueChange={(val) => handleInputChange(field.id, val)}
-            required={field.required}
-            id={field.id}
-          />
-        );
+        if (field.options && Array.isArray(field.options)) {
+          return (
+            <CheckboxField
+              label={field.label}
+              value={value || []}
+              onValueChange={(val) => handleInputChange(field.id, val)}
+              required={field.required}
+              options={field.options}
+              isGroup={true}
+            />
+          );
+        } else {
+          return (
+            <CheckboxField
+              label={field.label}
+              value={!!value}
+              onValueChange={(val) => handleInputChange(field.id, val)}
+              required={field.required}
+            />
+          );
+        }
 
       case 'radio':
         return (
@@ -238,50 +262,56 @@ const FormRenderer = ({ formTemplate }) => {
 
       case 'date':
         return (
-          <View style={{ marginVertical: 8 }}>
-            <Button
-              title={value ? new Date(value).toLocaleDateString() : 'Select Date'}
-              onPress={() => setShowDatePicker({ ...showDatePicker, [field.id]: true })}
-            />
-            {showDatePicker[field.id] && (
-              <DateTimePicker
-                value={value ? new Date(value) : new Date()}
-                mode="date"
-                display="default"
-                onChange={(e, selectedDate) => {
-                  setShowDatePicker({ ...showDatePicker, [field.id]: false });
-                  if (selectedDate) handleInputChange(field.id, selectedDate.toISOString());
-                }}
-              />
-            )}
-          </View>
+          <DateField
+            label={field.label}
+            value={value}
+            onChange={(date) => handleInputChange(field.id, date)}
+            required={field.required}
+          />
         );
 
       case 'signature':
         return (
-          <View>
-            <Text style={styles.signatureLabel}>{field.label}</Text>
-            <SignaturePad
-              onOK={(sigBase64) => {
-                console.log("Signature captured, length:", sigBase64.length);
-                handleInputChange(field.id, sigBase64);
-              }}
-              value={value}
-            />
-            {value && (
-              <Text style={styles.signatureSaved}>
-                ✓ Signature saved ({Math.round(value.length / 1024)} KB)
+          <View style={styles.signatureContainer}>
+            <View style={styles.signatureLabelContainer}>
+              <Text style={styles.signatureLabel}>
+                {field.label}
+                {field.required && <Text style={styles.required}> *</Text>}
               </Text>
-            )}
+            </View>
+            <View style={styles.signatureField}>
+              <SignaturePad
+                onOK={(sigBase64) => {
+                  console.log("Signature captured, length:", sigBase64.length);
+                  handleInputChange(field.id, sigBase64);
+                }}
+                value={value}
+              />
+              {value && (
+                <Text style={styles.signatureSaved}>
+                  ✓ Signature saved ({Math.round(value.length / 1024)} KB)
+                </Text>
+              )}
+            </View>
           </View>
         );
 
       case 'image':
         return (
-          <ImageCapture
-            image={value}
-            setImage={(img) => handleInputChange(field.id, img)}
-          />
+          <View style={styles.imageContainer}>
+            <View style={styles.imageLabelContainer}>
+              <Text style={styles.imageLabel}>
+                {field.label}
+                {field.required && <Text style={styles.required}> *</Text>}
+              </Text>
+            </View>
+            <View style={styles.imageField}>
+              <ImageCapture
+                image={value}
+                setImage={(img) => handleInputChange(field.id, img)}
+              />
+            </View>
+          </View>
         );
 
       case 'dynamic_group':
@@ -294,14 +324,14 @@ const FormRenderer = ({ formTemplate }) => {
                 group={field}
                 groupIndex={groupIndex}
                 groupData={groupData}
-                onGroupChange={(index, updatedGroup) => 
+                onGroupChange={(index, updatedGroup) =>
                   handleGroupChange(field.id, index, updatedGroup)
                 }
                 onRemoveGroup={(index) => handleRemoveGroup(field.id, index)}
                 isLastGroup={groupIndex === value.length - 1}
               />
             ))}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.addGroupButton}
               onPress={() => handleAddGroup(field.id)}
             >
@@ -309,6 +339,43 @@ const FormRenderer = ({ formTemplate }) => {
               <Text style={styles.addGroupButtonText}>Add More</Text>
             </TouchableOpacity>
           </View>
+        );
+
+      case 'image_group':
+        const imageArray = Array.isArray(value) ? value : [];
+        return (
+          <View style={styles.imageGroupContainer}>
+            <View style={styles.imageGroupLabelContainer}>
+              <Text style={styles.imageGroupLabel}>
+                {field.label}
+                {field.required && <Text style={styles.required}> *</Text>}
+              </Text>
+            </View>
+            <View style={styles.imageGroupField}>
+              <ImageCaptureGroup
+                images={imageArray}
+                setImages={(newImages) => {
+                  console.log("Setting images for field:", field.id, "new images:", newImages);
+                  handleInputChange(field.id, newImages);
+                }}
+              />
+            </View>
+          </View>
+        );
+
+      case 'accordion':
+        return (
+          <Accordion
+            title={field.label}
+            isOpen={accordionStates[field.id] || false}
+            onToggle={(isOpen) => handleAccordionToggle(field.id, isOpen)}
+          >
+            {field.fields && field.fields.map((subField) => (
+              <View key={subField.id} style={styles.accordionField}>
+                {renderField(subField)}
+              </View>
+            ))}
+          </Accordion>
         );
 
       default:
@@ -365,7 +432,7 @@ const FormRenderer = ({ formTemplate }) => {
 
 const styles = StyleSheet.create({
   formContainer: {
-    padding: 20,
+    padding: 16,
     paddingBottom: 40,
   },
   formTitle: {
@@ -386,7 +453,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   fieldBlock: {
-    marginBottom: 18,
+    marginBottom: 8,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -397,17 +464,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.primary,
   },
+  required: {
+    color: colors.danger,
+  },
+  // Signature styles
+  signatureContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  signatureLabelContainer: {
+    width: '35%',
+    paddingRight: 12,
+    paddingTop: 8,
+  },
   signatureLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '600',
     color: colors.dark,
+    textAlign: 'right',
+  },
+  signatureField: {
+    flex: 1,
   },
   signatureSaved: {
     color: 'green',
     fontSize: 12,
     marginTop: 4,
     textAlign: 'center',
+  },
+  // Image styles
+  imageContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  imageLabelContainer: {
+    width: '35%',
+    paddingRight: 12,
+    paddingTop: 8,
+  },
+  imageLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.dark,
+    textAlign: 'right',
+  },
+  imageField: {
+    flex: 1,
   },
   // Dynamic Group Styles
   dynamicGroupSection: {
@@ -418,6 +524,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     color: colors.dark,
+    textAlign: 'center',
+    paddingHorizontal: 8,
   },
   groupContainer: {
     borderWidth: 1,
@@ -440,6 +548,13 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     padding: 5,
+  },
+  removeButtonText: {
+    color: 'red',
+    backgroundColor: 'black',
+    padding: 7,
+    fontWeight: 'bold',
+    borderRadius: 8,
   },
   groupFields: {
     // Grid layout for better organization
@@ -462,57 +577,30 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 8,
   },
-  dynamicGroupSection: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: colors.dark,
-  },
-  groupContainer: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    backgroundColor: '#fafafa',
-  },
-  groupHeader: {
+  // Image Group Styles
+  imageGroupContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    paddingHorizontal: 8,
   },
-  groupTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  imageGroupLabelContainer: {
+    width: '35%',
+    paddingRight: 12,
+    paddingTop: 8,
+  },
+  imageGroupLabel: {
+    fontSize: 14,
+    fontWeight: '600',
     color: colors.dark,
+    textAlign: 'right',
   },
-  removeButton: {
-    padding: 5,
+  imageGroupField: {
+    flex: 1,
   },
-  groupFields: {
-    // All fields are text inputs now
-  },
-  groupField: {
-    marginBottom: 12,
-  },
-  addGroupButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    borderStyle: 'dashed',
-  },
-  addGroupButtonText: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    marginLeft: 8,
+  // Accordion styles
+  accordionField: {
+    marginBottom: 8,
   },
 });
 

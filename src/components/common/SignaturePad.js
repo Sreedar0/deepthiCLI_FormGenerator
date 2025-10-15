@@ -18,7 +18,11 @@ const SignaturePad = ({ onOK, value }) => {
   };
 
   const handleEnd = () => {
-    console.log("Signature drawing ended");
+    console.log("Signature drawing ended - saving automatically");
+    // Automatically save when user finishes drawing
+    setTimeout(() => {
+      ref.current.readSignature();
+    }, 100);
   };
 
   return (
@@ -29,9 +33,9 @@ const SignaturePad = ({ onOK, value }) => {
         onClear={handleClear}
         onEnd={handleEnd}
         nestedScrollEnabled={Platform.OS === 'android'}
-        descriptionText="Sign above"
-        clearText="Clear"
-        confirmText="Save"
+        descriptionText="Sign above - signature saves automatically"
+        clearText="Clear Signature"
+        confirmText="Save" // We'll hide this with CSS
         webStyle={`
           .m-signature-pad {
             box-shadow: none;
@@ -40,19 +44,20 @@ const SignaturePad = ({ onOK, value }) => {
           }
           .m-signature-pad--footer { 
             display: flex; 
-            justify-content: space-between;
+            justify-content: center;
             margin: 10px 20px;
           }
-          .m-signature-pad--footer button {
-            background-color: #007AFF;
+          .m-signature-pad--footer .button-save {
+            display: none !important;
+          }
+          .m-signature-pad--footer .button-clear {
+            background-color: #FF3B30;
             color: white;
             border: none;
             padding: 8px 16px;
             border-radius: 4px;
             font-size: 14px;
-          }
-          .m-signature-pad--footer .button-clear {
-            background-color: #FF3B30;
+            width: 120px;
           }
         `}
         androidHardwareAccelerationDisabled={false}

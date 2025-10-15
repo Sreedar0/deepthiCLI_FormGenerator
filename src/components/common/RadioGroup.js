@@ -13,7 +13,8 @@ const RadioGroup = ({
     <Text style={styles.radioGroupLabel}>
       {label}{required && ' *'}
     </Text>
-    {options.map((option) => (
+    <View>
+      {options.map((option) => (
       <TouchableOpacity
         key={option.value}
         style={styles.radioOption}
@@ -27,12 +28,15 @@ const RadioGroup = ({
         <Text style={styles.radioLabel}>{option.label}</Text>
       </TouchableOpacity>
     ))}
+    </View>
   </View>
 );
 
 const styles = StyleSheet.create({
   radioGroupContainer: {
     marginBottom: 20,
+    flexDirection:'row',
+    justifyContent:'space-around'
   },
   radioGroupLabel: {
     fontSize: 16,

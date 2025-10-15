@@ -39,6 +39,35 @@ const normalizeUri = async (uri) => {
   }
 };
 
+const AccordionDisplay = ({ value, fieldDef }) => {
+  if (!fieldDef?.fields || !Array.isArray(fieldDef.fields)) {
+    return <Text style={styles.noData}>No accordion data</Text>;
+  }
+
+  return (
+    <View style={styles.accordionContainer}>
+      {fieldDef.fields.map((subField) => {
+        const subValue = value?.[subField.id];
+        const subFieldType = getFieldType(subField.id, fieldDef.fields);
+        const subFieldDef = fieldDef.fields.find(f => f.id === subField.id);
+        
+        return (
+          <View key={subField.id} style={styles.accordionField}>
+            <Text style={styles.accordionSubLabel}>
+              {subFieldDef?.label || subField.id.replace(/([A-Z])/g, ' $1').trim()}
+            </Text>
+            <FieldDisplay 
+              value={subValue} 
+              type={subFieldType}
+              fieldDef={subFieldDef}
+            />
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
 // Create a separate ImageField component
 const ImageField = ({ value }) => {
   console.log(value,"lklkkllklklk");
@@ -97,78 +126,101 @@ const SignatureField = ({ value }) => {
   return <Image source={{ uri }} style={styles.signature} />;
 };
 
-// Dynamic Group Display Component for text fields
-const DynamicGroupDisplay = ({ groups, groupFields }) => {
-  console.log("DynamicGroupDisplay - groups:", groups, "groupFields:", groupFields);
+// Enhanced Dynamic Group Display Component that handles all array types
+const DynamicGroupDisplay = ({ groups, groupFields, isImageGroup = false }) => {
+  console.log("DynamicGroupDisplay - groups:", groups, "groupFields:", groupFields, "isImageGroup:", isImageGroup);
   
   if (!groups || !Array.isArray(groups) || groups.length === 0) {
-    return <Text style={styles.noData}>No groups added</Text>;
-  }
-
-  // Calculate table width based on number of columns
-  const tableWidth = Math.max(screenWidth * 1.5, groupFields.length * 120 + 80); // Minimum width + serial column
-
-  return (
-    <View style={styles.dynamicGroupsContainer}>
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={true}
-        style={styles.horizontalScroll}
-      >
-        <View style={[styles.tableContainer, { width: tableWidth }]}>
-          {/* Table Header */}
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderCell, styles.serialNoCell]}>#</Text>
-            {groupFields.map((field) => (
-              <Text key={field.id} style={styles.tableHeaderCell}>
-                {field.label}
-              </Text>
-            ))}
-          </View>
-          
-          {/* Table Rows */}
-          {groups.map((group, groupIndex) => (
-            <View 
-              key={groupIndex} 
-              style={[
-                styles.tableRow,
-                groupIndex % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd
-              ]}
-            >
-              <Text style={[styles.tableCell, styles.serialNoCell]}>
-                {groupIndex + 1}
-              </Text>
-              {groupFields.map((field) => (
-                <Text key={field.id} style={styles.tableCell}>
-                  {group[field.id] || '-'}
-                </Text>
-              ))}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-    </View>
-  );
-};
-
-// Table Format for Array Fallback
-const ArrayTableDisplay = ({ value, fieldDef }) => {
-  console.log("ArrayTableDisplay - value:", value, "fieldDef:", fieldDef);
-  
-  if (!value || !Array.isArray(value) || value.length === 0) {
     return <Text style={styles.noData}>No data available</Text>;
   }
 
-  // Try to detect if this is a dynamic group by checking fieldDef
-  if (fieldDef?.type === 'dynamic_group' && fieldDef?.groupFields) {
-    return <DynamicGroupDisplay groups={value} groupFields={fieldDef.groupFields} />;
+  // Handle image groups
+  if (isImageGroup) {
+    return (
+      <View style={styles.imageGroupContainer}>
+        {groups.map((image, index) => (
+          <View key={image.id || index} style={styles.imageDisplayCard}>
+            <Text style={styles.imageDisplayTitle}>Image {index + 1}</Text>
+            
+            <Image
+              source={{ uri: image.uri }}
+              style={styles.imageDisplay}
+              resizeMode="contain"
+              onError={(e) => console.log('Image display error:', e.nativeEvent)}
+            />
+            
+            {image.description && (
+              <View style={styles.descriptionContainer}>
+                <Text style={styles.descriptionLabel}>Description:</Text>
+                <Text style={styles.descriptionText}>{image.description}</Text>
+              </View>
+            )}
+          </View>
+        ))}
+      </View>
+    );
   }
 
-  // Get all unique keys from all objects in the array
-  const allKeys = [...new Set(value.flatMap(item => Object.keys(item)))];
+  // Detect if this is an image group by checking the first item
+  const firstItem = groups[0];
+  const isLikelyImageGroup = firstItem && 
+    (typeof firstItem === 'object' && firstItem !== null) && 
+    (firstItem.uri || firstItem.url || firstItem.path);
+
+  if (isLikelyImageGroup) {
+    return (
+      <View style={styles.imageGroupContainer}>
+        {groups.map((image, index) => (
+          <View key={image.id || index} style={styles.imageDisplayCard}>
+            <Text style={styles.imageDisplayTitle}>Image {index + 1}</Text>
+            
+            <ImageField value={image.uri || image.url || image.path} />
+            
+            {image.description && (
+              <View style={styles.descriptionContainer}>
+                <Text style={styles.descriptionLabel}>Description:</Text>
+                <Text style={styles.descriptionText}>{image.description}</Text>
+              </View>
+            )}
+            
+            {/* Show other properties in a table format */}
+            {Object.keys(image).length > 1 && (
+              <View style={styles.imageProperties}>
+                <Text style={styles.propertiesTitle}>Properties:</Text>
+                {Object.entries(image).map(([key, value]) => {
+                  if (key === 'uri' || key === 'url' || key === 'path') return null;
+                  return (
+                    <View key={key} style={styles.propertyRow}>
+                      <Text style={styles.propertyKey}>{key}:</Text>
+                      <Text style={styles.propertyValue}>{String(value)}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        ))}
+      </View>
+    );
+  }
+
+  // Get all unique keys from all objects in the array for table display
+  const allKeys = [...new Set(groups.flatMap(item => 
+    typeof item === 'object' && item !== null ? Object.keys(item) : []
+  ))];
   
   if (allKeys.length === 0) {
-    return <Text style={styles.noData}>Empty groups</Text>;
+    // If no object keys, display as simple list
+    return (
+      <View style={styles.simpleList}>
+        {groups.map((item, index) => (
+          <View key={index} style={styles.listItem}>
+            <Text style={styles.listIndex}>{index + 1}.</Text>
+            <Text style={styles.listText}>{String(item)}</Text>
+          </View>
+        ))}
+      </View>
+    );
   }
 
   // Calculate table width based on number of columns
@@ -176,7 +228,6 @@ const ArrayTableDisplay = ({ value, fieldDef }) => {
 
   return (
     <View style={styles.dynamicGroupsContainer}>
-    {/* <Text style={styles.sectionTitle}>Dynamic Groups ({value.length})</Text> */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={true}
@@ -194,7 +245,7 @@ const ArrayTableDisplay = ({ value, fieldDef }) => {
           </View>
           
           {/* Table Rows */}
-          {value.map((item, index) => (
+          {groups.map((item, index) => (
             <View 
               key={index} 
               style={[
@@ -205,11 +256,35 @@ const ArrayTableDisplay = ({ value, fieldDef }) => {
               <Text style={[styles.tableCell, styles.serialNoCell]}>
                 {index + 1}
               </Text>
-              {allKeys.map((key) => (
-                <Text key={key} style={styles.tableCell}>
-                  {item[key] || '-'}
-                </Text>
-              ))}
+              {allKeys.map((key) => {
+                const value = item[key];
+                
+                // Render images in table cells
+                if (typeof value === 'string' && (value.includes('file:') || value.includes('http'))) {
+                  return (
+                    <View key={key} style={[styles.tableCell, styles.imageCell]}>
+                      <ImageField value={value} />
+                    </View>
+                  );
+                }
+                
+                // Render signature images
+                if (typeof value === 'string' && value.includes('data:image')) {
+                  const uri = value.startsWith('data:image') ? value : `data:image/png;base64,${value}`;
+                  return (
+                    <View key={key} style={[styles.tableCell, styles.imageCell]}>
+                      <Image source={{ uri }} style={styles.tableImage} />
+                    </View>
+                  );
+                }
+                
+                // Default text display
+                return (
+                  <Text key={key} style={styles.tableCell}>
+                    {value || '-'}
+                  </Text>
+                );
+              })}
             </View>
           ))}
         </View>
@@ -217,6 +292,8 @@ const ArrayTableDisplay = ({ value, fieldDef }) => {
     </View>
   );
 };
+
+// Remove the separate ImageGroupDisplay component since it's now integrated
 
 // Table Format for Object Fallback
 const ObjectTableDisplay = ({ value }) => {
@@ -265,16 +342,33 @@ const ObjectTableDisplay = ({ value }) => {
 const FieldDisplay = ({ value, type, fieldDef }) => {
   console.log("FieldDisplay - Type:", type, "Value:", value, "FieldDef:", fieldDef);
   
-  // First, check if this is a dynamic group (either by type or by fieldDef)
-  if (type === 'dynamic_group' || fieldDef?.type === 'dynamic_group') {
+  // Handle all array types through DynamicGroupDisplay
+  if (Array.isArray(value)) {
+    // Check if this is specifically an image group
+    const isImageGroup = type === 'image_group' || 
+      (Array.isArray(value) && value.length > 0 && 
+       typeof value[0] === 'object' && value[0] !== null && 
+       (value[0].uri || value[0].url || value[0].path));
+    
     return (
       <DynamicGroupDisplay 
         groups={value} 
-        groupFields={fieldDef?.groupFields || []} 
+        groupFields={fieldDef?.groupFields || []}
+        isImageGroup={isImageGroup}
       />
     );
   }
 
+  if (type === 'accordion') {
+    return <AccordionDisplay value={value} fieldDef={fieldDef} />;
+  }
+
+  // Handle checkbox fields
+  if (type === 'checkbox') {
+    return renderCheckboxField(value, fieldDef);
+  }
+
+  // Handle single image fields
   if (
     type === 'image' ||
     (typeof value === 'string' && value.includes('file:'))
@@ -282,9 +376,10 @@ const FieldDisplay = ({ value, type, fieldDef }) => {
     console.log(type, value);
     return <ImageField value={value} />;
   }
+
+  // Handle signature fields
   console.log(type, "SIGNATUREEEEEEE", "---------------", value)
   if (typeof value === 'string' && value.includes('data:')) {
-
     const uri = value.startsWith('data:image')
       ? value
       : `data:image/png;base64,${value}`;
@@ -295,13 +390,8 @@ const FieldDisplay = ({ value, type, fieldDef }) => {
     return <Text>{new Date(value).toLocaleDateString()}</Text>;
   }
 
-  if (['checkbox', 'radio', 'select'].includes(type)) {
+  if (['radio', 'select'].includes(type)) {
     return <Text>{String(value)}</Text>;
-  }
-
-  // Handle array values (like dynamic groups that might not be properly typed)
-  if (Array.isArray(value)) {
-    return <ArrayTableDisplay value={value} fieldDef={fieldDef} />;
   }
 
   // Handle object values
@@ -310,6 +400,40 @@ const FieldDisplay = ({ value, type, fieldDef }) => {
   }
 
   return <Text>{value || 'Not provided'}</Text>;
+};
+
+// Helper function to render checkbox fields
+const renderCheckboxField = (value, fieldDef) => {
+  // Handle checkbox group display
+  if (fieldDef?.options && Array.isArray(fieldDef.options)) {
+    const selectedOptions = Array.isArray(value) ? value : [];
+    const selectedLabels = selectedOptions.map(selectedValue => {
+      const option = fieldDef.options.find(opt => 
+        (opt.value || opt) === selectedValue
+      );
+      return option?.label || option || selectedValue;
+    });
+    
+    return (
+      <View>
+        <Text style={styles.checkboxGroupLabel}>{fieldDef.label}:</Text>
+        {selectedOptions.length > 0 ? (
+          selectedLabels.map((label, index) => (
+            <Text key={index} style={styles.checkboxGroupItem}>• {label}</Text>
+          ))
+        ) : (
+          <Text style={styles.noData}>None selected</Text>
+        )}
+      </View>
+    );
+  } else {
+    // Handle single checkbox display
+    return (
+      <Text>
+        {fieldDef?.label || 'Checkbox'}: {value ? 'Yes' : 'No'}
+      </Text>
+    );
+  }
 };
 
 const getFieldType = (key, fields) => {
@@ -482,6 +606,16 @@ const styles = StyleSheet.create({
     color: '#333',
     borderRightWidth: 1,
     borderRightColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageCell: {
+    padding: 4,
+  },
+  tableImage: {
+    width: 100,
+    height: 60,
+    resizeMode: 'contain',
   },
   serialNoCell: {
     width: 60, // Smaller width for serial numbers
@@ -492,7 +626,128 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     backgroundColor: '#f8f8f8',
     textAlign: 'left',
-  }
+  },
+  // Image Group Styles
+  imageGroupContainer: {
+    marginTop: 10,
+  },
+  imageDisplayCard: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+  },
+  imageDisplayTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
+  },
+  imageDisplay: {
+    height: 200,
+    width: '100%',
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  descriptionContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 4,
+  },
+  descriptionLabel: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 4,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 18,
+  },
+  imageProperties: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 4,
+  },
+  propertiesTitle: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 6,
+    color: '#555',
+  },
+  propertyRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  propertyKey: {
+    fontWeight: '600',
+    fontSize: 12,
+    color: '#666',
+    width: 100,
+  },
+  propertyValue: {
+    fontSize: 12,
+    color: '#333',
+    flex: 1,
+  },
+  // Simple list styles for non-object arrays
+  simpleList: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+  },
+  listItem: {
+    flexDirection: 'row',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  listIndex: {
+    fontWeight: 'bold',
+    marginRight: 8,
+    color: '#666',
+  },
+  listText: {
+    flex: 1,
+    color: '#333',
+  },
+  // Checkbox styles
+  checkboxGroupLabel: {
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
+  },
+  checkboxGroupItem: {
+    marginLeft: 8,
+    marginBottom: 4,
+    color: '#333',
+  },
+  accordionContainer: {
+  borderWidth: 1,
+  borderColor: '#ddd',
+  borderRadius: 8,
+  padding: 12,
+  backgroundColor: '#f9f9f9',
+  marginTop: 8,
+},
+accordionField: {
+  marginBottom: 12,
+  paddingBottom: 12,
+  borderBottomWidth: 1,
+  borderBottomColor: '#eee',
+},
+accordionSubLabel: {
+  fontWeight: 'bold',
+  color: '#444',
+  marginBottom: 6,
+  fontSize: 14,
+},
 });
 
 export default FormViewScreen;
